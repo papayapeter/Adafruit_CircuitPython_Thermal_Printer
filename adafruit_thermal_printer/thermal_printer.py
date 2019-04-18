@@ -47,6 +47,11 @@ Implementation Notes
 * Adafruit CircuitPython firmware for the ESP8622 and M0-based boards:
   https://github.com/adafruit/circuitpython/releases
 
+Edits
+-----
+
+* papayapeter: added support for german characters
+
 """
 import time
 
@@ -197,12 +202,36 @@ class ThermalPrinter:
         while time.monotonic() < self._resume:
             pass
 
+    # --------------------------------------------------------------- edit peter
+    def _encode_printer_ascii(self, char):
+        # german characters
+        if char == 'Ä':
+            return b'\x8E'
+        elif char == 'ä':
+            return b'\x84'
+        elif char == 'Ö':
+            return b'\x99'
+        elif char == 'ö':
+            return b'\x94'
+        elif char == 'Ü':
+            return b'\x9A'
+        elif char == 'ü':
+            return b'\x81'
+        elif char == 'ß':
+            return b'\xE1'
+
+        elif ord(char) > 127:
+            return b'#'
+        else:
+            return char.encode()
+    # --------------------------------------------------------------- end edit
+
     def _write_char(self, char):
         # Write a single character to the printer.
         if char == '\r':
             return  # Strip carriage returns by skipping them.
         self._wait_timeout()
-        self._uart.write(char.encode('ascii'))
+        self._uart.write(self._encode_printer_ascii(char)) # -------- edit peter
         delay = self._byte_delay_s
         # Add extra delay for newlines or moving past the last column.
         if char == '\n' or self._column == self._max_column:
